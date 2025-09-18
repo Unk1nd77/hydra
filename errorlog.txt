@@ -1,0 +1,151 @@
+
+root@fedora:~/esp/my_project# idf.py set-target esp8266
+Checking Python dependencies...
+/root/esp/ESP8266_RTOS_SDK/tools/check_python_dependencies.py:22: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  import pkg_resources
+Python requirements from /root/esp/ESP8266_RTOS_SDK/requirements.txt are satisfied.
+/root/esp/ESP8266_RTOS_SDK/tools/idf.py:658: DeprecationWarning: 'MultiCommand' is deprecated and will be removed in Click 9.0. Use 'Group' instead.
+  class CLI(click.MultiCommand):
+Usage: /root/esp/ESP8266_RTOS_SDK/tools/idf.py [OPTIONS] COMMAND1 [ARGS]...
+                                               [COMMAND2 [ARGS]...]...
+Try '/root/esp/ESP8266_RTOS_SDK/tools/idf.py --help' for help.
+Error: No such command 'set-target'.
+root@fedora:~/esp/my_project# idf.py build
+Checking Python dependencies...
+/root/esp/ESP8266_RTOS_SDK/tools/check_python_dependencies.py:22: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  import pkg_resources
+Python requirements from /root/esp/ESP8266_RTOS_SDK/requirements.txt are satisfied.
+/root/esp/ESP8266_RTOS_SDK/tools/idf.py:658: DeprecationWarning: 'MultiCommand' is deprecated and will be removed in Click 9.0. Use 'Group' instead.
+  class CLI(click.MultiCommand):
+Executing action: all (aliases: build)
+Running ninja in directory /root/esp/my_project/build
+Executing "ninja all"...
+[405/593] Building C object esp-idf/lcd/CMakeFiles/idf_lcd.dir/lcd.c.obj
+In file included from /root/esp/ESP8266_RTOS_SDK/components/freertos/include/freertos/private/portable.h:52,
+                 from /root/esp/ESP8266_RTOS_SDK/components/freertos/include/freertos/FreeRTOS.h:62,
+                 from /root/esp/my_project/components/lcd/lcd.c:8:
+/root/esp/ESP8266_RTOS_SDK/components/freertos/port/esp8266/include/freertos/portmacro.h:85: warning: "portTICK_PERIOD_MS" redefined
+ #define portTICK_PERIOD_MS   ( ( portTickType ) 1000 / configTICK_RATE_HZ )
+ 
+/root/esp/my_project/components/lcd/lcd.c:5: note: this is the location of the previous definition
+ #define portTICK_PERIOD_MS ( ( TickType_t ) 1000 / CONFIG_FREERTOS_HZ )
+ 
+[408/593] Building C object esp-idf/bme280/CMakeFiles/__idf_bme280.dir/bme280.c.obj
+In file included from /root/esp/ESP8266_RTOS_SDK/components/freertos/include/freertos/private/portable.h:52,
+                 from /root/esp/ESP8266_RTOS_SDK/components/freertos/include/freertos/FreeRTOS.h:62,
+                 from /root/esp/my_project/components/bme280/bme280.c:8:
+/root/esp/ESP8266_RTOS_SDK/components/freertos/port/esp8266/include/freertos/portmacro.h:85: warning: "portTICK_PERIOD_MS" redefined
+ #define portTICK_PERIOD_MS   ( ( portTickType ) 1000 / configTICK_RATE_HZ )
+ 
+/root/esp/my_project/components/bme280/bme280.c:5: note: this is the location of the previous definition
+ #define portTICK_PERIOD_MS ( ( TickType_t ) 1000 / CONFIG_FREERTOS_HZ )
+ 
+[573/593] Building C object esp-idf/main/CMakeFiles/__idf_main.dir/main.c.obj
+FAILED: esp-idf/main/CMakeFiles/__idf_main.dir/main.c.obj 
+/root/esp/xtensa-lx106-elf/bin/xtensa-lx106-elf-gcc -DUSING_IBUS_FASTER_GET -D__ESP_FILE=FILE -I/root/esp/my_project/build/config -I/root/esp/my_project/main/.
+-I/root/esp/ESP8266_RTOS_SDK/components/newlib/platform_include -I/root/esp/ESP8266_RTOS_SDK/components/freertos/include -I/root/esp/ESP8266_RTOS_SDK/components/freertos/include/freertos -I/root/esp/ESP8266_RTOS_SDK/components/freertos/include/freertos/private -I/root/esp/ESP8266_RTOS_SDK/components/freertos/port/esp8266/include -I/root/esp/ESP8266_RTOS_SDK/components/freertos/port/esp8266/include/freertos -I/root/esp/ESP8266_RTOS_SDK/components/heap/include -I/root/esp/ESP8266_RTOS_SDK/components/heap/port/esp8266/include -I/root/esp/ESP8266_RTOS_SDK/components/log/include -I/root/esp/ESP8266_RTOS_SDK/components/lwip/include/apps -I/root/esp/ESP8266_RTOS_SDK/components/lwip/include/apps/sntp -I/root/esp/ESP8266_RTOS_SDK/components/lwip/lwip/src/include -I/root/esp/ESP8266_RTOS_SDK/components/lwip/port/esp8266/include -I/root/esp/ESP8266_RTOS_SDK/components/lwip/port/esp8266/include/arch -I/root/esp/ESP8266_RTOS_SDK/components/esp8266/include -I/root/esp/ESP8266_RTOS_SDK/components/esp8266/include/driver -I/root/esp/ESP8266_RTOS_SDK/components/esp_common/include -I/root/esp/ESP8266_RTOS_SDK/components/esp_event/include -I/root/esp/ESP8266_RTOS_SDK/components/tcpip_adapter/include -I/root/esp/ESP8266_RTOS_SDK/components/vfs/include -I/root/esp/ESP8266_RTOS_SDK/components/nvs_flash/include -I/root/esp/ESP8266_RTOS_SDK/components/esp_http_server/include -I/root/esp/ESP8266_RTOS_SDK/components/http_parser/include -I/root/esp/ESP8266_RTOS_SDK/components/spiffs/include -I/root/esp/ESP8266_RTOS_SDK/components/spi_flash/include -I/root/esp/ESP8266_RTOS_SDK/components/esp_http_client/include -I/root/esp/ESP8266_RTOS_SDK/components/json/cJSON -I/root/esp/ESP8266_RTOS_SDK/components/app_update/include -I/root/esp/ESP8266_RTOS_SDK/components/bootloader_support/include -I/root/esp/my_project/components/bme280/include -I/root/esp/my_project/components/lcd/include -mlongcalls -Wno-frame-address -ffunction-sections -fdata-sections -fstrict-volatile-bitfields -nostdlib -Wall -Werror=all -Wno-error=unused-function -Wno-error=unused-but-set-variable -Wno-error=unused-variable -Wno-error=deprecated-declarations -Wextra -Wno-unused-parameter -Wno-sign-compare -ggdb -Og -std=gnu99 -Wno-old-style-declaration -D_GNU_SOURCE -DIDF_VER=\"v3.4\" -DGCC_NOT_5_2_0 -DESP_PLATFORM -MD -MT esp-idf/main/CMakeFiles/__idf_main.dir/main.c.obj -MF esp-idf/main/CMakeFiles/__idf_main.dir/main.c.obj.d -o esp-idf/main/CMakeFiles/__idf_main.dir/main.c.obj -c /root/esp/my_project/main/main.c
+/root/esp/my_project/main/main.c:53: warning: "CONFIG_FREERTOS_HZ" redefined
+ #define CONFIG_FREERTOS_HZ 1000
+ 
+In file included from /root/esp/ESP8266_RTOS_SDK/components/freertos/port/esp8266/include/freertos/FreeRTOSConfig.h:32,
+                 from /root/esp/ESP8266_RTOS_SDK/components/freertos/include/freertos/FreeRTOS.h:56,
+                 from /root/esp/my_project/main/main.c:6:
+/root/esp/my_project/build/config/sdkconfig.h:117: note: this is the location of the previous definition
+ #define CONFIG_FREERTOS_HZ 100
+ 
+/root/esp/my_project/main/main.c: In function 'send_data_to_server':
+/root/esp/my_project/main/main.c:242:10: warning: unused variable 'post_data' [-Wunused-variable]
+     char post_data[512];
+          ^~~~~~~
+/root/esp/my_project/main/main.c: In function 'app_main':
+/root/esp/my_project/main/main.c:929:52: error: 'ESP_ERR_NVS_NEW_VERSION_FOUND' undeclared (first use in this function); did you mean 'ESP_ERR_NVS_NOT_FOUND'?
+     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+                                                    ^~~~~~~~~~~~~~~~~~~~~~~~~
+                                                    ESP_ERR_NVS_NOT_FOUND
+/root/esp/my_project/main/main.c:929:52: note: each undeclared identifier is reported only once for each function it appears in
+At top level:
+/root/esp/my_project/main/main.c:580:13: warning: 'web_server_task' defined but not used [-Wunused-function]
+ static void web_server_task(void *pvParameters)
+             ^~~~~~~~~~~
+
+/root/esp/my_project/main/main.c:569:13: warning: 'connect_handler' defined but not used [-Wunused-function]
+ static void connect_handler(void* arg, esp_event_base_t event_base,
+             ^~~~~~~~~~~
+/root/esp/my_project/main/main.c:558:13: warning: 'disconnect_handler' defined but not used [-Wunused-function]
+ static void disconnect_handler(void* arg, esp_event_base_t event_base,
+             ^~~~~~~~~~~~~~~~
+/root/esp/my_project/main/main.c:400:18: warning: 'init_spiffs' defined but not used [-Wunused-function]
+ static esp_err_t init_spiffs(void)
+                  ^~~~~~~~~~~
+[579/593] Performing configure step for 'bootloader'
+CMake Deprecation Warning at CMakeLists.txt:1 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+
+
+CMake Deprecation Warning at /root/esp/ESP8266_RTOS_SDK/tools/cmake/project.cmake:2 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+Call Stack (most recent call first):
+  CMakeLists.txt:20 (include)
+
+
+-- Found Git: /usr/sbin/git (found version "2.49.0")
+-- The C compiler identification is GNU 8.4.0
+-- The CXX compiler identification is GNU 8.4.0
+-- The ASM compiler identification is GNU
+-- Found assembler: /root/esp/xtensa-lx106-elf/bin/xtensa-lx106-elf-gcc
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /root/esp/xtensa-lx106-elf/bin/xtensa-lx106-elf-gcc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /root/esp/xtensa-lx106-elf/bin/xtensa-lx106-elf-g++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Project version: v3.4
+-- Building ESP-IDF components for target esp8266
+CMake Deprecation Warning at /root/esp/ESP8266_RTOS_SDK/CMakeLists.txt:1 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+
+
+-- Adding linker script /root/esp/ESP8266_RTOS_SDK/components/bootloader/subproject/main/esp8266.bootloader.ld
+-- Adding linker script /root/esp/ESP8266_RTOS_SDK/components/bootloader/subproject/main/esp8266.bootloader.rom.ld
+-- Adding linker script /root/esp/ESP8266_RTOS_SDK/components/esp8266/ld/esp8266.rom.ld
+-- Components: bootloader bootloader_support esp8266 esp_common esptool_py log main partition_table spi_flash
+-- Component paths: /root/esp/ESP8266_RTOS_SDK/components/bootloader /root/esp/ESP8266_RTOS_SDK/components/bootloader_support /root/esp/ESP8266_RTOS_SDK/components/esp8266 /root/esp/ESP8266_RTOS_SDK/components/esp_common /root/esp/ESP8266_RTOS_SDK/components/esptool_py /root/esp/ESP8266_RTOS_SDK/components/log /root/esp/ESP8266_RTOS_SDK/components/bootloader/subproject/main /root/esp/ESP8266_RTOS_SDK/components/partition_table /root/esp/ESP8266_RTOS_SDK/components/spi_flash
+-- Configuring done (0.5s)
+CMake Warning (dev) at /root/esp/ESP8266_RTOS_SDK/tools/cmake/component.cmake:437 (add_library):
+  Policy CMP0115 is not set: Source file extensions must be explicit.  Run
+  "cmake --help-policy CMP0115" for policy details.  Use the cmake_policy
+  command to set the policy and suppress this warning.
+
+  File:
+
+Саша Костин, [12.09.2025 15:22]
+/root/esp/ESP8266_RTOS_SDK/components/spi_flash/src/partition.c
+Call Stack (most recent call first):
+  /root/esp/ESP8266_RTOS_SDK/components/spi_flash/CMakeLists.txt:11 (idf_component_register)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+-- Generating done (0.0s)
+-- Build files have been written to: /root/esp/my_project/build/bootloader
+[581/593] Building C object esp-idf/libs...h/blake2b/ref/blake2b-compress-ref.c.obj
+ninja: build stopped: subcommand failed.
+ninja failed with exit code 1
+root@fedora:~/esp/my_project#

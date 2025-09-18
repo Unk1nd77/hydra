@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<style>
+  .logo {
+  color: #6B5B95
+  }
+  .lcd {
+  color: red;
+  }
+</style>
+</head>
+
+<body> 
+<div id="demo" >
+<h1 class="logo">Craxe Industries</h1>
+</div>
+ 
+<div>
+<h3>Показания датчика</h3>
+<h4>
+Температура: <span id = "temperature">...</span>°C<br>
+Влажность: <span id = "humidity">...</span>%<br>
+Давление: <span id = "pressure">...</span>mmHg<br>
+</h4>
+</div>
+
+<div>
+ <h3>Режим экрана: <span id="mode">Показания</span></h3>
+ <button type="button" onclick="setMode(0)">Показания</button>
+ <button type="button" onclick="setMode(1)">Пейджер</button>
+ <button type="button" onclick="setMode(2)">IP</button><br>
+</div>
+
+<div>
+ <h3>Подсветка экрана: <span id="LEDState">ВКЛ</span></h3>
+ <button type="button" onclick="setLed(1)">Включить</button>
+ <button type="button" onclick="setLed(0)">Выключить</button><br>
+</div>
+
+<div>
+<h3>Текст для отправки на экран</h3>
+<h4> 1 строка: <input id="newString1" type="text">
+ <button type="button" onclick="setStr(1)">Отправить</button><br>
+ 2 строка: <input id="newString2" type="text">
+ <button type="button" onclick="setStr(2)">Отправить</button>
+</h4>
+</div>
+
+<div>
+ <h3>Текст пейджера:<br>
+ <span id="string1" class="lcd" >...</span><br>
+ <span id="string2" class="lcd" >...</span><br></h3>
+</div>
+
+<script>
+setInterval(function() {
+  getData();
+}, 5000);
+
+function setMode(LCDmode) {
+  var xhttp =  new XMLHttpRequest( );
+  xhttp.onreadystatechange =  function( ) {
+    if (this.readyState == 4 && this.status == 200) {
+      document.getElementById("mode").innerHTML = this.responseText;
+    }
+  };
+  xhttp.open("GET", "setMode?mode="+ LCDmode, true);
+  xhttp.send( );
+}
+
+function setLed(led) {
+  var xhttp =  new XMLHttpRequest( );
+  xhttp.onreadystatechange =  function( ) {
+    if (this.readyState == 4 && this.status == 200) {
+      document.getElementById("LEDState").innerHTML = this.responseText;
+    }
+  };
+  xhttp.open("GET", "setLED?LEDstate="+ led, true);
+  xhttp.send( );
+}
+
+function setStr(num) { 
+  var xhttp = new XMLHttpRequest(); 
+  let str; 
+  if (num == 1) 
+    str = document.getElementById("newString1").value; 
+  else 
+    str = document.getElementById("newString2").value; 
+  xhttp.onreadystatechange = function () { 
+    if (this.readyState == 4 && this.status == 200) { 
+      if (num == 1) {
+        document.getElementById("newString1").value = "";
+        document.getElementById("string1").innerHTML = str; 
+      }
+      else if (num == 2){ 
+        document.getElementById("newString2").value = ""; 
+        document.getElementById("string2").innerHTML = str; 
+      }
+    } 
+  }; 
+xhttp.open("GET", "setLCD?num=" + num + "&str=" + str, true); 
+xhttp.send(); 
+}
+
+function getData() {
+  var xhttp = new XMLHttpRequest();
+  xhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+  let data = JSON.parse(this.responseText);
+        document.getElementById("temperature").innerHTML = data.temperature;
+  document.getElementById("humidity").innerHTML = data.humidity;
+  document.getElementById("pressure").innerHTML = data.pressure;
+    }
+  };
+  xhttp.open("GET", "getData", true);
+  xhttp.send();
+}
+
+</script>
+</body>
+</html>

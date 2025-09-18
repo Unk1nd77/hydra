@@ -1,0 +1,28 @@
+{
+    "configurations": [
+        {
+            "name": "ESP8266",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/../ESP8266_RTOS_SDK/components/**",
+                "${workspaceFolder}/../ESP8266_RTOS_SDK/components/esp8266/include/**",
+                "${workspaceFolder}/../ESP8266_RTOS_SDK/components/freertos/include/**",
+                "${workspaceFolder}/../ESP8266_RTOS_SDK/components/driver/include/**",
+                "${workspaceFolder}/../ESP8266_RTOS_SDK/components/esp_wifi/include/**",
+                "${workspaceFolder}/../ESP8266_RTOS_SDK/components/nvs_flash/include/**",
+                "${workspaceFolder}/../ESP8266_RTOS_SDK/components/esp_http_server/include/**",
+                "${workspaceFolder}/../ESP8266_RTOS_SDK/components/esp_http_client/include/**"
+            ],
+            "defines": [
+                "ESP8266",
+                "ESP8266_RTOS",
+                "ESP_PLATFORM"
+            ],
+            "compilerPath": "${workspaceFolder}/../xtensa-lx106-elf/bin/xtensa-lx106-elf-gcc",
+            "cStandard": "c11",
+            "cppStandard": "c++11",
+            "intelliSenseMode": "gcc-x64"
+        }
+    ],
+    "version": 4
+} 

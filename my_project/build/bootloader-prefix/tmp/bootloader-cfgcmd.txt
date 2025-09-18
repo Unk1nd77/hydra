@@ -1,0 +1,1 @@
+cmd='/opt/homebrew/bin/cmake;-DSDKCONFIG=/Users/dmitriy/Downloads/esp/my_project/sdkconfig;-DIDF_PATH=/Users/dmitriy/Downloads/esp/ESP8266_RTOS_SDK;-DIDF_TARGET=esp8266;-DPYTHON_DEPS_CHECKED=1;-DEXTRA_COMPONENT_DIRS=/Users/dmitriy/Downloads/esp/ESP8266_RTOS_SDK/components/bootloader;-DLEGACY_INCLUDE_COMMON_HEADERS=;-GNinja;-S;<SOURCE_DIR><SOURCE_SUBDIR>;-B;<BINARY_DIR>'

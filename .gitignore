@@ -1,0 +1,61 @@
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Build directories
+build/
+*/build/
+**/build/
+
+# ESP-IDF specific
+sdkconfig.old
+sdkconfig.ci.*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+errorlog.txt
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# Compiled binaries
+*.bin
+*.elf
+*.map
+*.hex
+
+# Object files
+*.o
+*.obj
+*.a
+*.lib
+
+# Dependencies
+node_modules/

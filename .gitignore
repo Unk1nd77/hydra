@@ -1,0 +1,56 @@
+# Build directories
+build/
+*/build/
+**/build/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+
+# ESP-IDF
+sdkconfig.old
+sdkconfig.ci.*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+errorlog.txt
+
+# Temporary files
+*.tmp
+*.temp
+*.orig
+*.bak
+
+# Backup directories
+*_backup/
+backup/
+
+# Archives
+*.tar.gz
+*.zip
+*.rar
+
+# Documents
+*.docx
+*.pdf
+~$*
+
+# Virtual environment
+venv/

@@ -1,0 +1,38 @@
+#!/bin/bash
+# Wrapper script for xtensa-lx106-elf-gcc using original toolchain via QEMU
+# This enables running x86_64 toolchain on ARM64 systems
+
+# Get the original toolchain path
+ORIGINAL_TOOLCHAIN="/home/unk1nd77/hydra/xtensa-lx106-elf/bin/xtensa-lx106-elf-gcc.orig"
+
+# Check if QEMU is available and x86_64 libraries exist
+if command -v qemu-x86_64 >/dev/null 2>&1 && [ -f "/lib64/ld-linux-x86-64.so.2" ]; then
+    # Use original toolchain via QEMU emulation
+    exec qemu-x86_64 "$ORIGINAL_TOOLCHAIN" "$@"
+else
+    # Fallback to system gcc with ESP8266 headers
+    echo "Warning: Using system gcc with ESP8266 headers" >&2
+    echo "This may not produce working firmware for ESP8266" >&2
+    
+    # Set ESP8266 SDK include paths
+    export C_INCLUDE_PATH="/home/unk1nd77/hydra/ESP8266_RTOS_SDK/components/newlib/platform_include:/home/unk1nd77/hydra/ESP8266_RTOS_SDK/components/esp8266/include:/home/unk1nd77/hydra/ESP8266_RTOS_SDK/components/freertos/include:$C_INCLUDE_PATH"
+    
+    # Filter out unsupported flags
+    FILTERED_ARGS=()
+    for arg in "$@"; do
+        case "$arg" in
+            -mlongcalls|-mtext-section-literals|-m32|-Wno-frame-address)
+                # Skip unsupported flags
+                ;;
+            *)
+                FILTERED_ARGS+=("$arg")
+                ;;
+        esac
+    done
+    
+    # Use system gcc with ESP8266 headers
+    exec gcc -nostdlib -ffreestanding -fno-builtin -fno-stack-protector \
+        -D__XTENSA__ -D__xtensa__ -DXTENSA -D__XTENSA_UL__ \
+        -fno-exceptions -fno-rtti -fno-threadsafe-statics -fno-use-cxa-atexit \
+        "${FILTERED_ARGS[@]}"
+fi

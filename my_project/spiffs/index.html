@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hydra-L Метеостанция</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .logo {
+            color: #6B5B95;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .sensor-data {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .sensor-value {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .sensor-value span {
+            font-size: 24px;
+            font-weight: bold;
+            color: #6B5B95;
+        }
+        .lcd {
+            color: #dc3545;
+            font-family: monospace;
+            background-color: #000;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        button {
+            background-color: #6B5B95;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #5a4b84;
+        }
+        input[type="text"] {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin: 5px;
+        }
+        .mode-buttons, .led-buttons {
+            margin: 15px 0;
+        }
+        .status {
+            color: #28a745;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="logo">Hydra-L Метеостанция</h1>
+        
+        <div class="sensor-data">
+            <div class="sensor-value">
+                <h3>Температура</h3>
+                <span id="temperature">...</span>°C
+            </div>
+            <div class="sensor-value">
+                <h3>Влажность</h3>
+                <span id="humidity">...</span>%
+            </div>
+            <div class="sensor-value">
+                <h3>Давление</h3>
+                <span id="pressure">...</span> mmHg
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h3>Режим экрана: <span id="mode" class="status">Показания</span></h3>
+        <div class="mode-buttons">
+            <button onclick="setMode(0)">Показания</button>
+            <button onclick="setMode(1)">Пейджер</button>
+            <button onclick="setMode(2)">IP</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <h3>Подсветка экрана: <span id="LEDState" class="status">ВКЛ</span></h3>
+        <div class="led-buttons">
+            <button onclick="setLed(1)">Включить</button>
+            <button onclick="setLed(0)">Выключить</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <h3>Текст для отправки на экран</h3>
+        <div>
+            <input id="newString1" type="text" placeholder="Введите текст для первой строки">
+            <button onclick="setStr(1)">Отправить</button>
+        </div>
+        <div>
+            <input id="newString2" type="text" placeholder="Введите текст для второй строки">
+            <button onclick="setStr(2)">Отправить</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <h3>Текст пейджера:</h3>
+        <div class="lcd">
+            <div id="string1">...</div>
+            <div id="string2">...</div>
+        </div>
+    </div>
+
+    <script>
+        // Обновление данных каждые 5 секунд
+        setInterval(getData, 5000);
+        getData(); // Получаем данные сразу при загрузке
+
+        function setMode(LCDmode) {
+            fetch(`setMode?mode=${LCDmode}`)
+                .then(response => response.text())
+                .then(text => {
+                    document.getElementById("mode").innerHTML = text;
+                });
+        }
+
+        function setLed(led) {
+            fetch(`setLED?LEDstate=${led}`)
+                .then(response => response.text())
+                .then(text => {
+                    document.getElementById("LEDState").innerHTML = text;
+                });
+        }
+
+        function setStr(num) {
+            const str = num === 1 ? 
+                document.getElementById("newString1").value :
+                document.getElementById("newString2").value;
+
+            fetch(`setLCD?num=${num}&str=${encodeURIComponent(str)}`)
+                .then(response => response.text())
+                .then(() => {
+                    if (num === 1) {
+                        document.getElementById("newString1").value = "";
+                        document.getElementById("string1").innerHTML = str;
+                    } else {
+                        document.getElementById("newString2").value = "";
+                        document.getElementById("string2").innerHTML = str;
+                    }
+                });
+        }
+
+        function getData() {
+            fetch('getData')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("temperature").innerHTML = data.temperature.toFixed(1);
+                    document.getElementById("humidity").innerHTML = data.humidity.toFixed(1);
+                    document.getElementById("pressure").innerHTML = data.pressure.toFixed(1);
+                })
+                .catch(error => console.error('Error:', error));
+        }
+    </script>
+</body>
+</html> 

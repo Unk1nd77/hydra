@@ -1,8 +1,10 @@
 #!/bin/bash
 
 # =============================================================================
-# Hydra-L Complete Installation Script
+# Hydra-L Complete Installation Script (FIXED VERSION)
 # Автоматическая установка всех зависимостей для ESP8266 проекта Hydra-L
+# Исправлены все проблемы с библиотеками и toolchain
+# БЕЗ ЗАГЛУШЕК - только официальные библиотеки!
 # =============================================================================
 
 set -e  # Остановка при любой ошибке
@@ -122,8 +124,8 @@ download_toolchain() {
         # Создаем директорию для toolchain
         mkdir -p xtensa-lx106-elf
         
-        # Скачиваем toolchain (пример URL, нужно заменить на актуальный)
-        TOOLCHAIN_URL="https://github.com/espressif/crosstool-NG/releases/download/xtensa-1.22.0/xtensa-lx106-elf-5.2.0.tar.gz"
+        # Используем правильный URL для toolchain версии 8.4.0
+        TOOLCHAIN_URL="https://github.com/espressif/crosstool-NG/releases/download/xtensa-1.22.0/xtensa-lx106-elf-8.4.0.tar.gz"
         
         log "Загрузка toolchain с $TOOLCHAIN_URL..."
         wget -O toolchain.tar.gz "$TOOLCHAIN_URL" || {
@@ -134,11 +136,17 @@ download_toolchain() {
         tar -xzf toolchain.tar.gz -C xtensa-lx106-elf --strip-components=1
         rm toolchain.tar.gz
         
-        # Исправляем g++ wrapper
+        # ИСПРАВЛЕНИЕ 1: Исправляем g++ wrapper
         if [[ -f "xtensa-lx106-elf/bin/xtensa-lx106-elf-g++" ]]; then
             log "Исправление g++ wrapper..."
             mv xtensa-lx106-elf/bin/xtensa-lx106-elf-g++ xtensa-lx106-elf/bin/xtensa-lx106-elf-g++.wrapper
             cp xtensa-lx106-elf/bin/xtensa-lx106-elf-gcc xtensa-lx106-elf/bin/xtensa-lx106-elf-g++
+        fi
+        
+        # ИСПРАВЛЕНИЕ 2: Исправляем liblto_plugin.so
+        if [[ -f "xtensa-lx106-elf/libexec/gcc/xtensa-lx106-elf/8.4.0/liblto_plugin.so.0.0.0" ]]; then
+            log "Исправление liblto_plugin.so..."
+            ln -sf liblto_plugin.so.0.0.0 xtensa-lx106-elf/libexec/gcc/xtensa-lx106-elf/8.4.0/liblto_plugin.so
         fi
         
         log "Toolchain установлен ✓"
@@ -149,19 +157,25 @@ download_toolchain() {
 
 # Загрузка ESP8266 RTOS SDK
 download_esp8266_sdk() {
-    log "Загрузка ESP8266 RTOS SDK..."
+    log "Загрузка официального ESP8266 RTOS SDK..."
     
-    if [[ ! -d "ESP8266_RTOS_SDK" ]]; then
+    if [[ ! -d "ESP8266_RTOS_SDK_official" ]]; then
         SDK_URL="https://github.com/espressif/ESP8266_RTOS_SDK.git"
         
-        log "Клонирование SDK с $SDK_URL..."
-        git clone --recursive "$SDK_URL" || {
+        log "Клонирование официального SDK с $SDK_URL..."
+        git clone --recursive "$SDK_URL" ESP8266_RTOS_SDK_official || {
             error "Не удалось клонировать SDK. Проверьте интернет соединение."
         }
         
-        log "SDK загружен ✓"
+        # ИСПРАВЛЕНИЕ 3: Исправляем pthread CMakeLists.txt
+        log "Исправление pthread CMakeLists.txt..."
+        if [[ -f "ESP8266_RTOS_SDK_official/components/pthread/CMakeLists.txt" ]]; then
+            sed -i 's/pthread_include_pthread_cond_impl/pthread_include_pthread_cond_var_impl/' ESP8266_RTOS_SDK_official/components/pthread/CMakeLists.txt
+        fi
+        
+        log "Официальный SDK загружен ✓"
     else
-        log "SDK уже загружен ✓"
+        log "Официальный SDK уже загружен ✓"
     fi
 }
 
@@ -180,7 +194,12 @@ setup_python_env() {
     # Обновляем pip
     pip install --upgrade pip
     
-    # Устанавливаем Python пакеты
+    # Устанавливаем Python пакеты из официального SDK
+    if [[ -f "ESP8266_RTOS_SDK_official/requirements.txt" ]]; then
+        log "Установка Python пакетов из официального SDK..."
+        pip install -r ESP8266_RTOS_SDK_official/requirements.txt
+    else
+        # Fallback пакеты
     pip install \
         pyyaml \
         click \
@@ -189,267 +208,25 @@ setup_python_env() {
         cryptography \
         future \
         pycryptodome
+    fi
     
     log "Python окружение настроено ✓"
 }
 
-# Создание исправлений для SDK
-create_sdk_fixes() {
-    log "Создание исправлений для SDK..."
+# Создание символических ссылок для библиотек
+create_library_links() {
+    log "Создание символических ссылок для библиотек..."
     
-    cd /home/unk1nd77/hydra/ESP8266_RTOS_SDK
+    cd /home/unk1nd77/hydra
     
-    # Создаем директории для NVS Flash
-    mkdir -p components/nvs_flash/include
-    mkdir -p components/nvs_flash/src
+    # ИСПРАВЛЕНИЕ 4: Создаем символическую ссылку для libgcc.a
+    if [[ -f "xtensa-lx106-elf/lib/gcc/xtensa-lx106-elf/8.4.0/libgcc.a" ]]; then
+        mkdir -p ESP8266_RTOS_SDK_official/components/esp8266/lib
+        ln -sf /home/unk1nd77/hydra/xtensa-lx106-elf/lib/gcc/xtensa-lx106-elf/8.4.0/libgcc.a ESP8266_RTOS_SDK_official/components/esp8266/lib/libgcc.a
+        log "Создана ссылка для libgcc.a ✓"
+    fi
     
-    # Создаем nvs_flash.h
-    cat > components/nvs_flash/include/nvs_flash.h << 'EOF'
-#ifndef NVS_FLASH_H
-#define NVS_FLASH_H
-
-#include "esp_err.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-// NVS types and constants
-typedef uint32_t nvs_handle_t;
-typedef uint8_t nvs_open_mode_t;
-
-#define NVS_READONLY  0x01
-#define NVS_READWRITE 0x02
-
-// NVS error codes
-#define ESP_ERR_NVS_NOT_INITIALIZED    0x1100
-#define ESP_ERR_NVS_NOT_FOUND          0x1101
-#define ESP_ERR_NVS_INVALID_NAME       0x1102
-#define ESP_ERR_NVS_INVALID_HANDLE     0x1103
-#define ESP_ERR_NVS_READ_ONLY          0x1104
-#define ESP_ERR_NVS_NOT_ENOUGH_SPACE   0x1105
-#define ESP_ERR_NVS_INVALID_LENGTH     0x1106
-#define ESP_ERR_NVS_NO_FREE_PAGES      0x1107
-#define ESP_ERR_NVS_VALUE_TOO_LONG     0x1108
-#define ESP_ERR_NVS_PART_NOT_FOUND     0x1109
-#define ESP_ERR_NVS_NEW_VERSION_FOUND  0x110A
-#define ESP_ERR_NVS_XTS_ENCR_FAILED    0x110B
-#define ESP_ERR_NVS_XTS_DECR_FAILED    0x110C
-#define ESP_ERR_NVS_XTS_CFG_FAILED     0x110D
-#define ESP_ERR_NVS_XTS_CFG_NOT_FOUND  0x110E
-#define ESP_ERR_NVS_ENCR_NOT_SUPPORTED 0x110F
-#define ESP_ERR_NVS_KEYS_NOT_INITIALIZED 0x1110
-#define ESP_ERR_NVS_CORRUPT_KEY_PART   0x1111
-#define ESP_ERR_NVS_CONTENT_DIFFERS    0x1112
-#define ESP_ERR_NVS_WRONG_ENCRYPTION   0x1113
-
-// Dummy NVS Flash functions for compatibility
-esp_err_t nvs_flash_init(void);
-esp_err_t nvs_flash_deinit(void);
-esp_err_t nvs_flash_erase(void);
-esp_err_t nvs_open(const char* name, nvs_open_mode_t open_mode, nvs_handle_t *out_handle);
-void nvs_close(nvs_handle_t handle);
-esp_err_t nvs_get_blob(nvs_handle_t handle, const char* key, void* out_value, size_t* length);
-esp_err_t nvs_set_blob(nvs_handle_t handle, const char* key, const void* value, size_t length);
-esp_err_t nvs_get_u32(nvs_handle_t handle, const char* key, uint32_t* out_value);
-esp_err_t nvs_set_u32(nvs_handle_t handle, const char* key, uint32_t value);
-esp_err_t nvs_erase_key(nvs_handle_t handle, const char* key);
-esp_err_t nvs_commit(nvs_handle_t handle);
-esp_err_t nvs_get_i8(nvs_handle_t handle, const char* key, int8_t* out_value);
-esp_err_t nvs_set_i8(nvs_handle_t handle, const char* key, int8_t value);
-esp_err_t nvs_get_u8(nvs_handle_t handle, const char* key, uint8_t* out_value);
-esp_err_t nvs_set_u8(nvs_handle_t handle, const char* key, uint8_t value);
-esp_err_t nvs_get_u16(nvs_handle_t handle, const char* key, uint16_t* out_value);
-esp_err_t nvs_set_u16(nvs_handle_t handle, const char* key, uint16_t value);
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif // NVS_FLASH_H
-EOF
-
-    # Создаем nvs_flash.c
-    cat > components/nvs_flash/src/nvs_flash.c << 'EOF'
-#include "nvs_flash.h"
-#include "esp_err.h"
-
-// Dummy implementations of NVS functions
-esp_err_t nvs_flash_init(void)
-{
-    return ESP_OK;
-}
-
-esp_err_t nvs_flash_deinit(void)
-{
-    return ESP_OK;
-}
-
-esp_err_t nvs_flash_erase(void)
-{
-    return ESP_OK;
-}
-
-esp_err_t nvs_open(const char* name, nvs_open_mode_t open_mode, nvs_handle_t *out_handle)
-{
-    if (out_handle) {
-        *out_handle = 1; // Dummy handle
-    }
-    return ESP_OK;
-}
-
-void nvs_close(nvs_handle_t handle)
-{
-    // Do nothing
-}
-
-esp_err_t nvs_get_blob(nvs_handle_t handle, const char* key, void* out_value, size_t* length)
-{
-    if (length) {
-        *length = 0;
-    }
-    return ESP_ERR_NVS_NOT_FOUND;
-}
-
-esp_err_t nvs_set_blob(nvs_handle_t handle, const char* key, const void* value, size_t length)
-{
-    return ESP_OK;
-}
-
-esp_err_t nvs_get_u32(nvs_handle_t handle, const char* key, uint32_t* out_value)
-{
-    if (out_value) {
-        *out_value = 0;
-    }
-    return ESP_ERR_NVS_NOT_FOUND;
-}
-
-esp_err_t nvs_set_u32(nvs_handle_t handle, const char* key, uint32_t value)
-{
-    return ESP_OK;
-}
-
-esp_err_t nvs_erase_key(nvs_handle_t handle, const char* key)
-{
-    return ESP_OK;
-}
-
-esp_err_t nvs_commit(nvs_handle_t handle)
-{
-    return ESP_OK;
-}
-
-// Additional NVS functions used by the system
-esp_err_t nvs_get_i8(nvs_handle_t handle, const char* key, int8_t* out_value)
-{
-    if (out_value) {
-        *out_value = 0;
-    }
-    return ESP_ERR_NVS_NOT_FOUND;
-}
-
-esp_err_t nvs_set_i8(nvs_handle_t handle, const char* key, int8_t value)
-{
-    return ESP_OK;
-}
-
-esp_err_t nvs_get_u8(nvs_handle_t handle, const char* key, uint8_t* out_value)
-{
-    if (out_value) {
-        *out_value = 0;
-    }
-    return ESP_ERR_NVS_NOT_FOUND;
-}
-
-esp_err_t nvs_set_u8(nvs_handle_t handle, const char* key, uint8_t value)
-{
-    return ESP_OK;
-}
-
-esp_err_t nvs_get_u16(nvs_handle_t handle, const char* key, uint16_t* out_value)
-{
-    if (out_value) {
-        *out_value = 0;
-    }
-    return ESP_ERR_NVS_NOT_FOUND;
-}
-
-esp_err_t nvs_set_u16(nvs_handle_t handle, const char* key, uint16_t value)
-{
-    return ESP_OK;
-}
-EOF
-
-    # Создаем CMakeLists.txt для nvs_flash
-    cat > components/nvs_flash/CMakeLists.txt << 'EOF'
-idf_component_register(
-    SRCS "src/nvs_flash.c"
-    INCLUDE_DIRS "include"
-)
-EOF
-
-    # Создаем sys/lock.h
-    mkdir -p components/newlib/include/sys
-    cat > components/newlib/include/sys/lock.h << 'EOF'
-#ifndef _SYS_LOCK_H
-#define _SYS_LOCK_H
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-typedef int _LOCK_T;
-typedef int _LOCK_RECURSIVE_T;
-typedef void *_lock_t;
-
-#define __LOCK_INIT(class,lock) static int lock = 0;
-#define __LOCK_INIT_RECURSIVE(class,lock) static int lock = 0;
-#define __lock_init(lock) ((void) 0)
-#define __lock_init_recursive(lock) ((void) 0)
-#define __lock_close(lock) ((void) 0)
-#define __lock_close_recursive(lock) ((void) 0)
-#define __lock_acquire(lock) ((void) 0)
-#define __lock_acquire_recursive(lock) ((void) 0)
-#define __lock_try_acquire(lock) 0
-#define __lock_try_acquire_recursive(lock) 0
-#define __lock_release(lock) ((void) 0)
-#define __lock_release_recursive(lock) ((void) 0)
-
-// Additional lock functions used by wear_levelling
-#define _lock_init(lock) __lock_init(lock)
-#define _lock_close(lock) __lock_close(lock)
-#define _lock_acquire(lock) __lock_acquire(lock)
-#define _lock_release(lock) __lock_release(lock)
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* _SYS_LOCK_H */
-EOF
-
-    # Обновляем CMakeLists.txt для lwip
-    if [[ -f "components/lwip/CMakeLists.txt" ]]; then
-        # Добавляем nvs_flash include если его нет
-        if ! grep -q "nvs_flash/include" components/lwip/CMakeLists.txt; then
-            sed -i '/include_dirs/a\    ${IDF_PATH}/components/nvs_flash/include' components/lwip/CMakeLists.txt
-        fi
-    fi
-
-    # Обновляем CMakeLists.txt для wear_levelling
-    if [[ -f "components/wear_levelling/CMakeLists.txt" ]]; then
-        # Добавляем newlib include если его нет
-        if ! grep -q "newlib/include" components/wear_levelling/CMakeLists.txt; then
-            sed -i 's/INCLUDE_DIRS include/INCLUDE_DIRS include "${IDF_PATH}\/components\/newlib\/include"/' components/wear_levelling/CMakeLists.txt
-        fi
-    fi
-
-    # Исправляем dhcp_state.c
-    if [[ -f "components/lwip/port/esp8266/netif/dhcp_state.c" ]]; then
-        sed -i 's/#include "nvs\.h"/#include "nvs_flash.h"/' components/lwip/port/esp8266/netif/dhcp_state.c
-    fi
-
-    log "Исправления SDK созданы ✓"
+    log "Символические ссылки созданы ✓"
 }
 
 # Создание переменных окружения
@@ -462,8 +239,8 @@ setup_environment() {
 # Hydra-L Environment Setup
 
 export PATH="/home/unk1nd77/hydra/xtensa-lx106-elf/bin:$PATH"
-export IDF_PATH="/home/unk1nd77/hydra/ESP8266_RTOS_SDK"
-export ESP8266_RTOS_SDK_PATH="/home/unk1nd77/hydra/ESP8266_RTOS_SDK"
+export IDF_PATH="/home/unk1nd77/hydra/ESP8266_RTOS_SDK_official"
+export ESP8266_RTOS_SDK_PATH="/home/unk1nd77/hydra/ESP8266_RTOS_SDK_official"
 
 # Активируем Python виртуальное окружение
 source /home/unk1nd77/hydra/venv/bin/activate
@@ -497,10 +274,10 @@ verify_installation() {
     fi
     
     # Проверяем SDK
-    if [[ -d "/home/unk1nd77/hydra/ESP8266_RTOS_SDK" ]]; then
-        log "SDK: ✓"
+    if [[ -d "/home/unk1nd77/hydra/ESP8266_RTOS_SDK_official" ]]; then
+        log "Официальный SDK: ✓"
     else
-        error "SDK не найден!"
+        error "Официальный SDK не найден!"
     fi
     
     # Проверяем Python окружение
@@ -511,16 +288,23 @@ verify_installation() {
     fi
     
     # Проверяем исправления
-    if [[ -f "/home/unk1nd77/hydra/ESP8266_RTOS_SDK/components/nvs_flash/include/nvs_flash.h" ]]; then
-        log "NVS Flash исправления: ✓"
+    if [[ -f "/home/unk1nd77/hydra/xtensa-lx106-elf/libexec/gcc/xtensa-lx106-elf/8.4.0/liblto_plugin.so" ]]; then
+        log "liblto_plugin.so исправление: ✓"
     else
-        error "NVS Flash исправления не найдены!"
+        error "liblto_plugin.so исправление не найдено!"
     fi
     
-    if [[ -f "/home/unk1nd77/hydra/ESP8266_RTOS_SDK/components/newlib/include/sys/lock.h" ]]; then
-        log "Lock исправления: ✓"
+    if [[ -f "/home/unk1nd77/hydra/ESP8266_RTOS_SDK_official/components/esp8266/lib/libgcc.a" ]]; then
+        log "libgcc.a ссылка: ✓"
     else
-        error "Lock исправления не найдены!"
+        error "libgcc.a ссылка не найдена!"
+    fi
+    
+    # Проверяем pthread исправление
+    if grep -q "pthread_include_pthread_cond_var_impl" /home/unk1nd77/hydra/ESP8266_RTOS_SDK_official/components/pthread/CMakeLists.txt; then
+        log "pthread исправление: ✓"
+    else
+        error "pthread исправление не найдено!"
     fi
     
     log "Все проверки пройдены успешно! ✓"
@@ -580,7 +364,7 @@ main() {
     download_toolchain
     download_esp8266_sdk
     setup_python_env
-    create_sdk_fixes
+    create_library_links
     setup_environment
     verify_installation
     create_build_script
@@ -601,9 +385,16 @@ main() {
     echo "   - idf.py flash       # для прошивки"
     
     echo -e "${BLUE}Переменные окружения:${NC}"
-    echo "IDF_PATH: /home/unk1nd77/hydra/ESP8266_RTOS_SDK"
+    echo "IDF_PATH: /home/unk1nd77/hydra/ESP8266_RTOS_SDK_official"
     echo "Toolchain: /home/unk1nd77/hydra/xtensa-lx106-elf/bin"
     echo "Python venv: /home/unk1nd77/hydra/venv"
+    
+    echo -e "${GREEN}Исправления применены:${NC}"
+    echo "✓ Исправлен g++ wrapper"
+    echo "✓ Исправлен liblto_plugin.so"
+    echo "✓ Создана ссылка на libgcc.a"
+    echo "✓ Исправлен pthread CMakeLists.txt"
+    echo "✓ Используется официальный SDK без заглушек"
 }
 
 # Запуск

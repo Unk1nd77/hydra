@@ -5,6 +5,7 @@ set(include_dirs
     lwip/src/include
     port/${target}/include
     port/${target}/include/arch
+    ${IDF_PATH}/components/nvs_flash/include
     )
 
 set(srcs

@@ -5,6 +5,6 @@ idf_component_register(SRCS "Partition.cpp"
                             "WL_Flash.cpp"
                             "crc32.cpp"
                             "wear_levelling.cpp"
-                    INCLUDE_DIRS include
+                    INCLUDE_DIRS include "${IDF_PATH}/components/newlib/include"
                     PRIV_INCLUDE_DIRS private_include
                     REQUIRES spi_flash)

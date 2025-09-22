@@ -78,7 +78,7 @@ esp_err_t WL_Ext_Safe::init()
 
 size_t WL_Ext_Safe::chip_size()
 {
-    ESP_LOGV(TAG, "%s size = %i", __func__, WL_Flash::chip_size() - 2 * this->flash_sector_size);
+    ESP_LOGV(TAG, "%s size = %li", __func__, (long)(WL_Flash::chip_size() - 2 * this->flash_sector_size));
     return WL_Flash::chip_size() - 2 * this->flash_sector_size;
 }
 

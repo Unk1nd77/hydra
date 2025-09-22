@@ -36,9 +36,9 @@ esp_err_t Partition::erase_range(size_t start_address, size_t size)
 {
     esp_err_t result = esp_partition_erase_range(this->partition, start_address, size);
     if (result == ESP_OK) {
-        ESP_LOGV(TAG, "erase_range - start_address=0x%08x, size=0x%08x, result=0x%08x", start_address, size, result);
+        ESP_LOGV(TAG, "erase_range - start_address=0x%08lx, size=0x%08lx, result=0x%08x", (unsigned long)start_address, (unsigned long)size, result);
     } else {
-        ESP_LOGE(TAG, "erase_range - start_address=0x%08x, size=0x%08x, result=0x%08x", start_address, size, result);
+        ESP_LOGE(TAG, "erase_range - start_address=0x%08lx, size=0x%08lx, result=0x%08x", (unsigned long)start_address, (unsigned long)size, result);
     }
     return result;
 }

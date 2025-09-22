@@ -1,255 +1,56 @@
-// Copyright 2015-2016 Espressif Systems (Shanghai) PTE LTD
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
+#ifndef NVS_FLASH_H
+#define NVS_FLASH_H
 
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-#ifndef nvs_flash_h
-#define nvs_flash_h
+#include "esp_err.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "nvs.h"
-#include "esp_partition.h"
+// NVS types and constants
+typedef uint32_t nvs_handle_t;
+typedef uint8_t nvs_open_mode_t;
 
+#define NVS_READONLY  0x01
+#define NVS_READWRITE 0x02
 
-#define NVS_KEY_SIZE 32 // AES-256
+// NVS error codes
+#define ESP_ERR_NVS_NOT_INITIALIZED    0x1100
+#define ESP_ERR_NVS_NOT_FOUND          0x1101
+#define ESP_ERR_NVS_INVALID_NAME       0x1102
+#define ESP_ERR_NVS_INVALID_HANDLE     0x1103
+#define ESP_ERR_NVS_READ_ONLY          0x1104
+#define ESP_ERR_NVS_NOT_ENOUGH_SPACE   0x1105
+#define ESP_ERR_NVS_INVALID_LENGTH     0x1106
+#define ESP_ERR_NVS_NO_FREE_PAGES      0x1107
+#define ESP_ERR_NVS_VALUE_TOO_LONG     0x1108
+#define ESP_ERR_NVS_PART_NOT_FOUND     0x1109
+#define ESP_ERR_NVS_NEW_VERSION_FOUND  0x110A
+#define ESP_ERR_NVS_XTS_ENCR_FAILED    0x110B
+#define ESP_ERR_NVS_XTS_DECR_FAILED    0x110C
+#define ESP_ERR_NVS_XTS_CFG_FAILED     0x110D
+#define ESP_ERR_NVS_XTS_CFG_NOT_FOUND  0x110E
+#define ESP_ERR_NVS_ENCR_NOT_SUPPORTED 0x110F
+#define ESP_ERR_NVS_KEYS_NOT_INITIALIZED 0x1110
+#define ESP_ERR_NVS_CORRUPT_KEY_PART   0x1111
+#define ESP_ERR_NVS_CONTENT_DIFFERS    0x1112
+#define ESP_ERR_NVS_WRONG_ENCRYPTION   0x1113
 
-/**
- * @brief Key for encryption and decryption
- */
-typedef struct {
-    uint8_t eky[NVS_KEY_SIZE]; /*!<  XTS encryption and decryption key*/
-    uint8_t tky[NVS_KEY_SIZE]; /*!<  XTS tweak key */
-} nvs_sec_cfg_t;
-
-/**
- * @brief Initialize the default NVS partition.
- *
- * This API initialises the default NVS partition. The default NVS partition
- * is the one that is labeled "nvs" in the partition table.
- *
- * When "NVS_ENCRYPTION" is enabled in the menuconfig, this API enables
- * the NVS encryption for the default NVS partition as follows
- *      1. Read security configurations from the first NVS key
- *         partition listed in the partition table. (NVS key partition is
- *         any "data" type partition which has the subtype value set to "nvs_keys")
- *      2. If the NVS key partiton obtained in the previous step is empty,
- *         generate and store new keys in that NVS key partiton.
- *      3. Internally call "nvs_flash_secure_init()" with
- *         the security configurations obtained/generated in the previous steps.
- *
- * Post initialization NVS read/write APIs
- * remain the same irrespective of NVS encryption.
- *
- * @return
- *      - ESP_OK if storage was successfully initialized.
- *      - ESP_ERR_NVS_NO_FREE_PAGES if the NVS storage contains no empty pages
- *        (which may happen if NVS partition was truncated)
- *      - ESP_ERR_NOT_FOUND if no partition with label "nvs" is found in the partition table
- *      - ESP_ERR_NO_MEM in case memory could not be allocated for the internal structures
- *      - one of the error codes from the underlying flash storage driver
- *      - error codes from nvs_flash_read_security_cfg API (when "NVS_ENCRYPTION" is enabled).
- *      - error codes from nvs_flash_generate_keys API (when "NVS_ENCRYPTION" is enabled).
- *      - error codes from nvs_flash_secure_init_partition API (when "NVS_ENCRYPTION" is enabled) .
- */
+// Dummy NVS Flash functions for compatibility
 esp_err_t nvs_flash_init(void);
-
-/**
- * @brief Initialize NVS flash storage for the specified partition.
- *
- * @param[in]  partition_label   Label of the partition. Must be no longer than 16 characters.
- *
- * @return
- *      - ESP_OK if storage was successfully initialized.
- *      - ESP_ERR_NVS_NO_FREE_PAGES if the NVS storage contains no empty pages
- *        (which may happen if NVS partition was truncated)
- *      - ESP_ERR_NOT_FOUND if specified partition is not found in the partition table
- *      - ESP_ERR_NO_MEM in case memory could not be allocated for the internal structures
- *      - one of the error codes from the underlying flash storage driver
- */
-esp_err_t nvs_flash_init_partition(const char *partition_label);
-
-/**
- * @brief Initialize NVS flash storage for the partition specified by partition pointer.
- *
- * @param[in] partition pointer to a partition obtained by the ESP partition API.
- *
- * @return
- *      - ESP_OK if storage was successfully initialized
- *      - ESP_ERR_NVS_NO_FREE_PAGES if the NVS storage contains no empty pages
- *        (which may happen if NVS partition was truncated)
- *      - ESP_ERR_INVALID_ARG in case partition is NULL
- *      - ESP_ERR_NO_MEM in case memory could not be allocated for the internal structures
- *      - one of the error codes from the underlying flash storage driver
- */
-esp_err_t nvs_flash_init_partition_ptr(const esp_partition_t *partition);
-
-/**
- * @brief Deinitialize NVS storage for the default NVS partition
- *
- * Default NVS partition is the partition with "nvs" label in the partition table.
- *
- * @return
- *      - ESP_OK on success (storage was deinitialized)
- *      - ESP_ERR_NVS_NOT_INITIALIZED if the storage was not initialized prior to this call
- */
 esp_err_t nvs_flash_deinit(void);
-
-/**
- * @brief Deinitialize NVS storage for the given NVS partition
- *
- * @param[in]  partition_label   Label of the partition
- *
- * @return
- *      - ESP_OK on success
- *      - ESP_ERR_NVS_NOT_INITIALIZED if the storage for given partition was not
- *        initialized prior to this call
- */
-esp_err_t nvs_flash_deinit_partition(const char* partition_label);
-
-/**
- * @brief Erase the default NVS partition
- *
- * Erases all contents of the default NVS partition (one with label "nvs").
- *
- * @note If the partition is initialized, this function first de-initializes it. Afterwards, the partition has to
- *       be initialized again to be used.
- *
- * @return
- *      - ESP_OK on success
- *      - ESP_ERR_NOT_FOUND if there is no NVS partition labeled "nvs" in the
- *        partition table
- *      - different error in case de-initialization fails (shouldn't happen)
- */
 esp_err_t nvs_flash_erase(void);
-
-/**
- * @brief Erase specified NVS partition
- *
- * Erase all content of a specified NVS partition
- *
- * @note If the partition is initialized, this function first de-initializes it. Afterwards, the partition has to
- *       be initialized again to be used.
- *
- * @param[in]  part_name    Name (label) of the partition which should be erased
- *
- * @return
- *      - ESP_OK on success
- *      - ESP_ERR_NOT_FOUND if there is no NVS partition with the specified name
- *        in the partition table
- *      - different error in case de-initialization fails (shouldn't happen)
- */
-esp_err_t nvs_flash_erase_partition(const char *part_name);
-
-/**
- * @brief Erase custom partition.
- *
- * Erase all content of specified custom partition.
- *
- * @note
- *  If the partition is initialized, this function first de-initializes it.
- *  Afterwards, the partition has to be initialized again to be used.
- *
- * @param[in] partition pointer to a partition obtained by the ESP partition API.
- *
- * @return
- *      - ESP_OK on success
- *      - ESP_ERR_NOT_FOUND if there is no partition with the specified
- *        parameters in the partition table
- *      - ESP_ERR_INVALID_ARG in case partition is NULL
- *      - one of the error codes from the underlying flash storage driver
- */
-esp_err_t nvs_flash_erase_partition_ptr(const esp_partition_t *partition);
-
-/**
- * @brief Initialize the default NVS partition.
- *
- * This API initialises the default NVS partition. The default NVS partition
- * is the one that is labeled "nvs" in the partition table.
- *
- * @param[in]  cfg Security configuration (keys) to be used for NVS encryption/decryption.
- *                              If cfg is NULL, no encryption is used.
- *
- * @return
- *      - ESP_OK if storage was successfully initialized.
- *      - ESP_ERR_NVS_NO_FREE_PAGES if the NVS storage contains no empty pages
- *        (which may happen if NVS partition was truncated)
- *      - ESP_ERR_NOT_FOUND if no partition with label "nvs" is found in the partition table
- *      - ESP_ERR_NO_MEM in case memory could not be allocated for the internal structures
- *      - one of the error codes from the underlying flash storage driver
- */
-esp_err_t nvs_flash_secure_init(nvs_sec_cfg_t* cfg);
-
-/**
- * @brief Initialize NVS flash storage for the specified partition.
- *
- * @param[in]  partition_label   Label of the partition. Note that internally a reference to
- *                               passed value is kept and it should be accessible for future operations
- *
- * @param[in]  cfg Security configuration (keys) to be used for NVS encryption/decryption.
- *                              If cfg is null, no encryption/decryption is used.
- * @return
- *      - ESP_OK if storage was successfully initialized.
- *      - ESP_ERR_NVS_NO_FREE_PAGES if the NVS storage contains no empty pages
- *        (which may happen if NVS partition was truncated)
- *      - ESP_ERR_NOT_FOUND if specified partition is not found in the partition table
- *      - ESP_ERR_NO_MEM in case memory could not be allocated for the internal structures
- *      - one of the error codes from the underlying flash storage driver
- */
-esp_err_t nvs_flash_secure_init_partition(const char *partition_label, nvs_sec_cfg_t* cfg);
-
-/**
- * @brief Generate and store NVS keys in the provided esp partition
- *
- * @param[in]  partition Pointer to partition structure obtained using
- *                       esp_partition_find_first or esp_partition_get.
- *                       Must be non-NULL.
- * @param[out] cfg       Pointer to nvs security configuration structure.
- *                       Pointer must be non-NULL.
- *                       Generated keys will be populated in this structure.
- *
- *
- * @return
- *      -ESP_OK, if cfg was read successfully;
- *      -or error codes from esp_partition_write/erase APIs.
- */
-
-esp_err_t nvs_flash_generate_keys(const esp_partition_t* partition, nvs_sec_cfg_t* cfg);
-
-
-/**
- * @brief Read NVS security configuration from a partition.
- *
- * @param[in]  partition Pointer to partition structure obtained using
- *                       esp_partition_find_first or esp_partition_get.
- *                       Must be non-NULL.
- * @param[out] cfg       Pointer to nvs security configuration structure.
- *                       Pointer must be non-NULL.
- *
- * @note  Provided parition is assumed to be marked 'encrypted'.
- *
- * @return
- *      -ESP_OK, if cfg was read successfully;
- *      -ESP_ERR_NVS_KEYS_NOT_INITIALIZED, if the partition is not yet written with keys.
- *      -ESP_ERR_NVS_CORRUPT_KEY_PART, if the partition containing keys is found to be corrupt
- *      -or error codes from esp_partition_read API.
- */
-
-esp_err_t nvs_flash_read_security_cfg(const esp_partition_t* partition, nvs_sec_cfg_t* cfg);
+esp_err_t nvs_open(const char* name, nvs_open_mode_t open_mode, nvs_handle_t *out_handle);
+void nvs_close(nvs_handle_t handle);
+esp_err_t nvs_get_blob(nvs_handle_t handle, const char* key, void* out_value, size_t* length);
+esp_err_t nvs_set_blob(nvs_handle_t handle, const char* key, const void* value, size_t length);
+esp_err_t nvs_get_u32(nvs_handle_t handle, const char* key, uint32_t* out_value);
+esp_err_t nvs_set_u32(nvs_handle_t handle, const char* key, uint32_t value);
+esp_err_t nvs_erase_key(nvs_handle_t handle, const char* key);
+esp_err_t nvs_commit(nvs_handle_t handle);
 
 #ifdef __cplusplus
 }
 #endif
 
-
-#endif /* nvs_flash_h */
+#endif // NVS_FLASH_H

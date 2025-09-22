@@ -14,7 +14,7 @@
 
 #include <stdio.h>
 #include <assert.h>
-#include "nvs.h"
+#include "nvs_flash.h"
 #include "lwip/opt.h"
 #include "lwip/dhcp.h"
 #include "lwip/netif.h"

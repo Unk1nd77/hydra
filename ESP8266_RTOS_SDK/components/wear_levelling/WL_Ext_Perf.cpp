@@ -125,7 +125,7 @@ esp_err_t WL_Ext_Perf::erase_range(size_t start_address, size_t size)
     // stored back.
     // For the rest area this operation not needed because complete flash device sector will be erased.
 
-    ESP_LOGV(TAG, "%s begin, addr = 0x%08x, size = %i", __func__, start_address, size);
+    ESP_LOGV(TAG, "%s begin, addr = 0x%08lx, size = %li", __func__, (unsigned long)start_address, (long)size);
     // Calculate pre check values
     uint32_t pre_check_start = (start_address / this->fat_sector_size) % this->size_factor;
     uint32_t sectors_count = size / this->fat_sector_size;
